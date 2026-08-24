@@ -1,0 +1,37 @@
+{
+  "name": "rust-voice-booster",
+  "version": "3.1.0",
+  "description": "Rust Voice Booster - Pro DJ Audio Suite",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win portable",
+    "build-installer": "electron-builder --win nsis"
+  },
+  "author": "Rust Voice Booster",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^43.4.1",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.rustvoicebooster.app",
+    "productName": "Rust Voice Booster",
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "portable": {
+      "artifactName": "RustVoiceBooster.exe"
+    }
+  },
+  "dependencies": {
+    "audify": "^1.10.1"
+  }
+}

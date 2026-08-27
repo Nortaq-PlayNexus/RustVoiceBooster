@@ -621,12 +621,18 @@ async function goLive() {
         } else { console.log('[NativeCable] audify unavailable, using setSinkId'); }
       } catch(e) { console.warn('[NativeCable] native error', e); }
 
-      // WebAudio setSinkId path (always on, even with native, for redundancy)
-      if (cableAudioEl.setSinkId) {
-        await cableAudioEl.setSinkId(S.cableDeviceId);
+      // WebAudio setSinkId path ONLY as fallback — never both, or game hears audio doubled
+      if (!nativeOk) {
+        if (cableAudioEl.setSinkId) {
+          await cableAudioEl.setSinkId(S.cableDeviceId);
+        }
+        await cableAudioEl.play().catch(() => {});
+        if (cableGain) cableGain.gain.value = 1;
+      } else {
+        // Native direct WASAPI is live: keep WebAudio tap muted + element paused
+        if (cableGain) cableGain.gain.value = 0;
+        try { await cableAudioEl.pause(); } catch(e){}
       }
-      await cableAudioEl.play().catch(() => {});
-      if (cableGain) cableGain.gain.value = 1;
       if (monitorGain) monitorGain.gain.value = S.cableMonitor ? 1 : 0;
       S.cableState = 'live';
       btn.classList.add('on'); btn.textContent = 'DISCONNECT';
@@ -697,7 +703,7 @@ async function setCableDevice(deviceId) {
   const dev = cableDevices.find(d => d.deviceId === deviceId);
   S.cableDeviceId = deviceId;
   S.cableDeviceLabel = dev ? dev.label : deviceId;
-  if (cableAudioEl && cableAudioEl.setSinkId && S.liveOn) {
+  if (!nativeLive && cableAudioEl && cableAudioEl.setSinkId && S.liveOn) {
     try { await cableAudioEl.setSinkId(deviceId); updateStatus('CABLE \u2192 ' + S.cableDeviceLabel); } catch(e){ console.error(e); }
   }
   localStorage.setItem('rvb-cable-id', deviceId);
